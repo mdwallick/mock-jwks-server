@@ -3,6 +3,9 @@ const express = require("express")
 const app = express()
 const port = 8080
 
+// Configurable cache duration in seconds (default to 1 hour)
+const JWKS_CACHE_DURATION = process.env.JWKS_CACHE_DURATION || 300
+
 // An array of keys, simulating multiple keys
 const keys = [
   {
@@ -25,6 +28,12 @@ const keys = [
 
 // JWKS endpoint that returns the array of keys
 app.get("/.well-known/jwks.json", (req, res) => {
+  const maxAge = parseInt(JWKS_CACHE_DURATION, 10)
+
+  res.set({
+    "Cache-Control": `public, max-age=${maxAge}, must-revalidate`,
+    "Content-Type": "application/json",
+  })
   res.json({
     keys: keys,
   })
